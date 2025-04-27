@@ -1,0 +1,8 @@
+streamlit>=1.32
+pandas
+numpy
+plotly
+faster-whisper
+sentence-transformers
+scikit-learn
+umap-learn
