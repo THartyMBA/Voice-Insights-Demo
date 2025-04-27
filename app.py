@@ -44,9 +44,12 @@ def transcribe(audio_path):
     segments, _ = model.transcribe(audio_path, beam_size=5)
     # concatenate words into sentences (simple '.', '?', '!' split)
     text = " ".join(seg.text for seg in segments)
-    sentences = [s.strip() for s in
-                 itertools.chain.from_iterable(t.split(".") for t in text.splitlines())
-                 if len(s := s.strip()) > 15]
+    sentences = [
+        chunk.strip()
+        for line in text.splitlines()
+        for chunk in line.split(".")
+        if len(chunk.strip()) > 15
+    ]
     return sentences, text
 
 def cluster_sentences(sentences, n_clusters=5):
