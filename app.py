@@ -53,16 +53,34 @@ def transcribe(audio_path):
     return sentences, text
 
 def cluster_sentences(sentences, n_clusters=5):
+    # Guard against too‐few sentences
+    n_sent = len(sentences)
+    if n_sent == 0:
+        st.error("Transcript produced no sentences. Try a clearer or longer audio file.")
+        st.stop()
+
+    # Cap clusters at number of sentences
+    if n_clusters > n_sent:
+        st.warning(f"Only {n_sent} sentence(s) extracted; reducing clusters to {n_sent}.")
+        n_clusters = n_sent
+
+    # Embed
     emb = load_embedder().encode(sentences, batch_size=32, show_progress_bar=False)
+
+    # Cluster
     km = KMeans(n_clusters=n_clusters, random_state=42).fit(emb)
+
+    # UMAP for visualization (unchanged)
     umap_2d = umap.UMAP(random_state=42).fit_transform(emb)
+
     df = pd.DataFrame({
         "sentence": sentences,
         "cluster": km.labels_,
-        "x": umap_2d[:,0],
-        "y": umap_2d[:,1],
+        "x": umap_2d[:, 0],
+        "y": umap_2d[:, 1],
     })
     return df, emb
+
 
 def top_tfidf_keywords(df, n=5):
     vec = TfidfVectorizer(stop_words="english", max_features=5000)
